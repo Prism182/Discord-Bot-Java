@@ -1,6 +1,6 @@
 package com.prism182;
 
-import com.prism182.commands.commandListener;
+import com.prism182.commands.commandHandler;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.OnlineStatus;
@@ -9,9 +9,9 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 
 public class Main {
     public static void main(String[] args) throws InterruptedException {
-        JDA bot = JDABuilder.createDefault("MTMyMzMzNDU3MjM0MzE2NTAwOA.GGrmOE.5HRoCfT9SFtxRqp-_N12JQpzyE8_H107qpafqM")
+        JDA bot = JDABuilder.createDefault("MTMyMzMzNDU3MjM0MzE2NTAwOA.GJVVBP.HLfIrPkz4FTNnhDQN6oP-as_wjUSwdM0Q7xJIQ")
                 .setStatus(OnlineStatus.ONLINE)
-                .addEventListeners(new commandListener())
+                .addEventListeners(new commandHandler())
 //                .setActivity(Activity.playing("DND"))
                 .build().awaitReady();
         
@@ -21,6 +21,7 @@ public class Main {
             guild.upsertCommand("create-campaign", "Create a new campaign!")
                     .addOption(OptionType.STRING, "name", "The name of the campaign", true)
                     .addOption(OptionType.BOOLEAN, "req-role", "Whether a role is required to be made by the bot for the campaign", true)
+                    .addOption(OptionType.BOOLEAN, "req-category", "Whether the category and channels are required to be made by the bot for the campaign", true)
                     .queue();
             
             guild.upsertCommand("ping", "Pings the bot")
