@@ -3,6 +3,7 @@ package com.prism182.commands;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.channel.Channel;
 import net.dv8tion.jda.api.entities.channel.concrete.Category;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -12,18 +13,20 @@ import net.dv8tion.jda.api.interactions.commands.SlashCommandInteraction;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.EnumSet;
-import java.util.List;
 import java.util.Objects;
 
 public class commandHandler extends ListenerAdapter {
     
     @Override
     public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
-        if (event.getName().equals("create-campaign")) {
-            createCampaign(event);
-        } else if (event.getName().equals("ping")) {
+        if (event.getName().equals("ping")) {
             pingCommand(event);
+        }else if (event.getName().equals("create-campaign")) {
+            createCampaign(event);
+        } else if (event.getName().equals("end-campaign")) {
+            removeCampaign(event);
         }
+        
     }
     
     public static void pingCommand(SlashCommandInteraction event) {
@@ -31,7 +34,7 @@ public class commandHandler extends ListenerAdapter {
         event.reply("Pong!").setEphemeral(false).flatMap(v -> event.getHook().editOriginalFormat(
                 "Pong: %d ms", System.currentTimeMillis() - Time)).queue();
     }
-    public static void createCampaign(SlashCommandInteractionEvent event) {
+    public static void createCampaign(SlashCommandInteractionEvent event){
         if (event.getName().equals("create-campaign")) {
             
             event.deferReply().queue();
@@ -96,11 +99,39 @@ public class commandHandler extends ListenerAdapter {
                             .queue();
                 });
             }
-            
-            event.getHook().sendMessage("Created the campaign channels, category and role with name: "+ categoryName)
-                    .setEphemeral(false)
-                    .queue();
         }
     }
     
+    public static void removeCampaign(SlashCommandInteraction event) {
+        Guild guild = event.getGuild();
+        
+        event.deferReply().queue();
+        
+        if (guild == null) {
+            event.getHook().sendMessage("This command can only be used in a server.").setEphemeral(true).queue();
+            return;
+        }
+        
+        OptionMapping campaignName = event.getOption("name");
+        assert campaignName != null;
+        String categoryName = campaignName.getAsString();
+        
+        Category category = guild.getCategoriesByName(categoryName, true).stream().findFirst().orElse(null);
+        
+        if (category == null) {
+            event.getHook().sendMessage("No category with the name '" + categoryName + "' was found.");
+            return;
+        }
+        
+        category.getChannels().forEach(channel -> channel.delete().queue());
+        Role role = guild.getRolesByName(categoryName, true).stream().findFirst().orElse(null);
+        if (role != null) {
+            role.delete().queue();
+        }
+        
+        category.delete().queue(
+                success -> event.getHook().sendMessage("Category, channels, and role deleted successfully!").queue(),
+                error -> event.getHook().sendMessage("Failed to delete the category. Please check permissions.").setEphemeral(true).queue()
+        );
+    }
 }
