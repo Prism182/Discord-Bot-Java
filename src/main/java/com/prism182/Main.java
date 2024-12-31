@@ -19,7 +19,7 @@ public class Main {
         }
         
         JDA bot = JDABuilder.createDefault(token)
-                .setStatus(OnlineStatus.ONLINE)
+                .setStatus(OnlineStatus.OFFLINE)
                 .addEventListeners(new commandHandler())
 //                .setActivity(Activity.playing("DND"))
                 .build().awaitReady();
